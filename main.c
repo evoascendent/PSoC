@@ -26,7 +26,9 @@ int main()
         /* Anzahl der Elemente im Datenarray. */
         uint16 dataArrayLength = sizeof(dataArray) / sizeof(*dataArray);
         
-        /* Das Datenarray und die Länge müssen übergeben werden. Nachdem geprüft wurde, ob ein 'm' empfangen wurde, wird das Array gesendet.*/
+        /* Das Datenarray und die Länge müssen übergeben werden. Nachdem geprüft wurde, ob ein 'm' empfangen wurde, wird das Array gesendet.
+        Es kann pro Schleifendurchlauf nur 1 Array gesendet werden, da ansonsten nicht klar definiert ist, welches Sendefunktion das 'm' empfangen hat.
+        Also möglichst alle Daten in einem zu sendenden Array vereinen und dann versenden. (flexiblere Funktionen folgen) */
         sendIntArray(dataArray, dataArrayLength);
         //sendFloatArray(dataArray, dataArrayLength);
     }
