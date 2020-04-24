@@ -69,6 +69,46 @@ void sendString(char8 lineStr[LINE_STR_LENGTH])
 }
 
 
+void sendBytes(const uint8* array, uint16 arrayLengthBytes)
+{
+    if (0u != USBUART_IsConfigurationChanged())
+    {
+        if (0u != USBUART_GetConfiguration())
+        {
+            USBUART_CDC_Init();
+        }
+    }
+
+    /* Service USB CDC when device is configured. */
+    if (0u != USBUART_GetConfiguration())
+    {
+        /* Wait until component is ready to send data to host. */
+        while (0u == USBUART_CDCIsReady())
+        {
+        }
+
+        /* Send data back to host. */
+        USBUART_PutData(array, arrayLengthBytes);
+
+        /* If the last sent packet is exactly the maximum packet 
+        *  size, it is followed by a zero-length packet to assure
+        *  that the end of the segment is properly identified by 
+        *  the terminal.
+        */
+        if (MAX_PACKET_SIZE == arrayLengthBytes)
+        {
+            /* Wait until component is ready to send data to PC. */
+            while (0u == USBUART_CDCIsReady())
+            {
+            }
+
+            /* Send zero-length packet to PC. */
+            USBUART_PutData(NULL, 0u);
+        }
+    }
+}
+
+
 /* Prüft, ob 'char8 order'(siehe oben) empfangen wurde. Falls ja, wird der übergebene String gesendet. */
 void checkAndSendString(char8 lineStr[LINE_STR_LENGTH])
 {
@@ -101,6 +141,31 @@ void checkAndSendString(char8 lineStr[LINE_STR_LENGTH])
                 USBUART_PutChar('\n');
             }
         }
+    }
+}
+
+
+uint8 sendBinArray(const uint8* dataArray, uint16 dataArrayLengthBytes)
+{
+    char8 resultStr[LINE_STR_LENGTH];
+    
+    if(0 == check(order))
+    {
+        if(MAX_PACKET_SIZE < dataArrayLengthBytes)
+        {
+            sprintf(resultStr, "Array zu lang! Puffer: %u, Array: %u", MAX_PACKET_SIZE, dataArrayLengthBytes);
+            sendString(resultStr);
+            return 1;
+        }
+        else
+        {   
+            sendBytes(dataArray, dataArrayLengthBytes);
+            return 0;
+        }
+    }
+    else
+    {
+        return 1;
     }
 }
 
@@ -193,5 +258,7 @@ uint8 sendFloatArray(const double dataArray[], uint16 dataArrayLength)
         return 1;
     }
 }
+
+
 
 /* [] END OF FILE */
